@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { useLocation } from 'react-router-dom';
 import { Button } from '../components/ui/button';
 import { Card, CardContent } from '../components/ui/card';
 import ScoreGauge from '../components/ScoreGauge';
@@ -16,8 +17,17 @@ import { PlayCircle, RefreshCw, Shield, Activity } from 'lucide-react';
 const Dashboard = () => {
   const [scoreData, setScoreData] = useState(null);
   const [loading, setLoading] = useState(false);
-  const [evaluated, setEvaluated] = useState(false);
+  const location = useLocation();
+  const [evaluated, setEvaluated] = useState(location.state?.showReport || false);
   const { isLender } = useRole();
+
+  // If directly navigated with showReport, trigger evaluation
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  React.useEffect(() => {
+    if (location.state?.showReport && !scoreData) {
+      handleEvaluate();
+    }
+  }, [location.state]);
 
   const handleEvaluate = async () => {
     setLoading(true);

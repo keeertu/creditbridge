@@ -30,3 +30,41 @@ export const samplePayload = {
     income_gaps: 3
   }
 };
+
+export const mockBulkData = [
+  {
+    id: "APP-2024-001",
+    name: "Michael Chen",
+    score: 72.5,
+    riskBand: "Low Risk",
+    keyFactors: ["Strong consistency", "High completion rate"]
+  },
+  {
+    id: "APP-2024-002",
+    name: "Sarah Johnson",
+    score: 45.2,
+    riskBand: "High Risk",
+    keyFactors: ["Income gaps detected", "Short tenure"]
+  },
+  {
+    id: "APP-2024-003",
+    name: "David Smith",
+    score: 58.9,
+    riskBand: "Medium Risk",
+    keyFactors: ["Improving consistency", "Moderate history"]
+  },
+  {
+    id: "APP-2024-004",
+    name: "Emily Davis",
+    score: 81.0,
+    riskBand: "Low Risk",
+    keyFactors: ["Long-term stability", "Diverse platforms"]
+  },
+  {
+    id: "APP-2024-005",
+    name: "James Wilson",
+    score: 51.5,
+    riskBand: "Medium Risk",
+    keyFactors: ["Recent volatility", "Good detailed ratings"]
+  }
+];
