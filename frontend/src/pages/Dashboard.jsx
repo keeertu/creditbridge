@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { useLocation } from 'react-router-dom';
+import { useLocation, useNavigate } from 'react-router-dom';
 import { Button } from '../components/ui/button';
 import { Card, CardContent } from '../components/ui/card';
 import ScoreGauge from '../components/ScoreGauge';
@@ -9,34 +9,34 @@ import ExplanationCard from '../components/ExplanationCard';
 import KeyInsights from '../components/KeyInsights';
 import RoleToggle from '../components/RoleToggle';
 import { useRole } from '../context/RoleContext';
-import { fetchCreditScore } from '../services/creditApi';
+import { fetchCreditScore, exportPDF } from '../services/creditApi';
 import { deriveFactorScores } from '../utils/scoreMapping';
-import { samplePayload } from '../data/mockData';
-import { PlayCircle, RefreshCw, Shield, Activity } from 'lucide-react';
+import { PlayCircle, RefreshCw, Shield, Activity, FileText } from 'lucide-react';
 
 const Dashboard = () => {
-  const [scoreData, setScoreData] = useState(null);
-  const [loading, setLoading] = useState(false);
   const location = useLocation();
+  const navigate = useNavigate();
+  const [scoreData, setScoreData] = useState(location.state?.scoreData || null);
+  const [loading, setLoading] = useState(false);
   const [evaluated, setEvaluated] = useState(location.state?.showReport || false);
   const { isLender } = useRole();
 
-  // If directly navigated with showReport, trigger evaluation
-  // eslint-disable-next-line react-hooks/exhaustive-deps
+  // If directly navigated with showReport and no data, we should have had data passed or we show error
+  // Removing auto-evaluate with mock data for security/integrity
   React.useEffect(() => {
     if (location.state?.showReport && !scoreData) {
-      handleEvaluate();
+      console.warn('Dashboard reached without scoreData in state');
     }
-  }, [location.state]);
+  }, [location.state, scoreData]);
 
-  const handleEvaluate = async () => {
+  const handleDownloadPDF = async () => {
+    if (!scoreData) return;
     setLoading(true);
     try {
-      const data = await fetchCreditScore(samplePayload);
-      setScoreData(data);
-      setEvaluated(true);
+      await exportPDF(scoreData);
     } catch (error) {
-      console.error('Evaluation failed:', error);
+      console.error('PDF Export failed:', error);
+      alert('Failed to generate PDF report.');
     } finally {
       setLoading(false);
     }
@@ -54,6 +54,14 @@ const Dashboard = () => {
       scoreData.score.key_reasons
     )
     : null;
+
+  if (evaluated && !scoreData) {
+    return (
+      <div className="flex items-center justify-center h-[70vh] text-slate-500">
+        Preparing credit assessment…
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-slate-50">
@@ -95,24 +103,14 @@ const Dashboard = () => {
                   Evaluate a non-traditional income profile using our alternative credit scoring system.
                 </p>
                 <Button
-                  onClick={handleEvaluate}
-                  disabled={loading}
+                  onClick={() => navigate('/single-input')}
                   className="w-full bg-slate-900 hover:bg-slate-800 text-white py-6 text-base font-medium"
                 >
-                  {loading ? (
-                    <>
-                      <RefreshCw className="w-5 h-5 mr-2 animate-spin" />
-                      Evaluating...
-                    </>
-                  ) : (
-                    <>
-                      <PlayCircle className="w-5 h-5 mr-2" />
-                      Evaluate Profile
-                    </>
-                  )}
+                  <PlayCircle className="w-5 h-5 mr-2" />
+                  Go to Single Profile Input
                 </Button>
                 <p className="text-xs text-slate-400 mt-4">
-                  Using sample gig worker profile data
+                  Input required features to generate a real report
                 </p>
               </CardContent>
             </Card>
@@ -130,8 +128,18 @@ const Dashboard = () => {
                       riskBand={scoreData.score.risk_band}
                       size="large"
                     />
-                    <div className="mt-6">
+                    <div className="mt-6 flex flex-col items-center gap-4">
                       <RiskBadge riskBand={scoreData.score.risk_band} />
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        className="mt-2 gap-2 text-slate-600 border-slate-300"
+                        onClick={handleDownloadPDF}
+                        disabled={loading}
+                      >
+                        <FileText className="w-4 h-4" />
+                        Download PDF Report
+                      </Button>
                     </div>
                   </div>
                 </CardContent>

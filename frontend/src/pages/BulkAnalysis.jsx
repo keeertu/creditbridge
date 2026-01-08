@@ -3,28 +3,52 @@ import { useNavigate } from 'react-router-dom';
 import { Button } from '../components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '../components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '../components/ui/table';
-import { Shield, Upload, FileSpreadsheet, FileText, Download, CheckCircle, ArrowLeft } from 'lucide-react';
-import { mockBulkData } from '../data/mockData';
+import { Shield, Upload, FileSpreadsheet, FileText, CheckCircle, ArrowLeft, RefreshCw, AlertCircle } from 'lucide-react';
+import { uploadBulkData, exportXLS } from '../services/creditApi';
 
 const BulkAnalysis = () => {
     const navigate = useNavigate();
     const [file, setFile] = useState(null);
-    const [status, setStatus] = useState('idle'); // idle, uploaded, ready
+    const [results, setResults] = useState([]);
+    const [status, setStatus] = useState('idle'); // idle, loading, ready, error
+    const [error, setError] = useState(null);
 
-    const handleFileChange = (e) => {
+    const handleFileChange = async (e) => {
         const selectedFile = e.target.files[0];
-        if (selectedFile) {
-            setFile(selectedFile);
-            // Simulate processing delay
-            setTimeout(() => {
-                setStatus('ready');
-            }, 800);
+        if (!selectedFile) return;
+
+        setFile(selectedFile);
+        setStatus('loading');
+        setError(null);
+
+        try {
+            const data = await uploadBulkData(selectedFile);
+            setResults(data.results);
+            setStatus('ready');
+        } catch (err) {
+            console.error('Bulk upload failed:', err);
+            setError('Failed to process file. Please ensure it follows the required schema.');
+            setStatus('error');
         }
     };
 
-    const handleDownload = (type) => {
-        console.log(`Downloading ${type} report...`);
-        // Placeholder for actual download logic
+    const handleDownloadXLS = async () => {
+        if (results.length === 0) return;
+        setStatus('loading');
+        try {
+            const exportData = results.map(r => ({
+                applicant_id: r.applicant_id,
+                credit_reliability_score: r.credit_reliability_score,
+                risk_band: r.risk_band,
+                key_reasons: r.key_reasons
+            }));
+            await exportXLS(exportData);
+            setStatus('ready');
+        } catch (err) {
+            console.error('XLS Export failed:', err);
+            alert('Failed to generate XLS report.');
+            setStatus('ready');
+        }
     };
 
     const getRiskBadgeColor = (band) => {
@@ -61,13 +85,37 @@ const BulkAnalysis = () => {
 
             <main className="flex-1 max-w-7xl mx-auto px-6 py-8 w-full">
 
+                {/* Loading State */}
+                {status === 'loading' && (
+                    <div className="flex flex-col items-center justify-center min-h-[50vh] space-y-4">
+                        <RefreshCw className="w-12 h-12 text-slate-400 animate-spin" />
+                        <p className="text-slate-500 font-medium text-lg">Processing dataset...</p>
+                    </div>
+                )}
+
+                {/* Error State */}
+                {status === 'error' && (
+                    <div className="max-w-xl mx-auto mt-12">
+                        <Card className="border-red-200 bg-red-50">
+                            <CardContent className="p-8 text-center flex flex-col items-center">
+                                <AlertCircle className="w-12 h-12 text-red-500 mb-4" />
+                                <h3 className="text-lg font-bold text-red-900 mb-2">Upload Failed</h3>
+                                <p className="text-red-700 mb-6">{error}</p>
+                                <Button className="bg-red-600 hover:bg-red-700 text-white" onClick={() => setStatus('idle')}>
+                                    Try Again
+                                </Button>
+                            </CardContent>
+                        </Card>
+                    </div>
+                )}
+
                 {/* State 1: Upload Section */}
                 {status === 'idle' && (
                     <div className="max-w-xl mx-auto mt-12">
                         <Card>
                             <CardHeader>
                                 <CardTitle>Upload Dataset</CardTitle>
-                                <CardDescription>Upload your applicant data for batch processing.</CardDescription>
+                                <CardDescription>Upload your applicant data for batch processing (CSV or XLSX).</CardDescription>
                             </CardHeader>
                             <CardContent>
                                 <div className="border-2 border-dashed border-slate-300 rounded-lg p-12 text-center hover:bg-slate-50 transition-colors cursor-pointer relative">
@@ -103,12 +151,16 @@ const BulkAnalysis = () => {
                                     </div>
                                     <div>
                                         <h2 className="text-lg font-semibold text-slate-900">Analysis Complete</h2>
-                                        <p className="text-slate-500 text-sm">Processed {mockBulkData.length} records from <span className="font-medium text-slate-700">{file?.name}</span></p>
+                                        <p className="text-slate-500 text-sm">Processed {results.length} records from <span className="font-medium text-slate-700">{file?.name}</span></p>
                                     </div>
                                 </div>
                                 <div className="flex gap-3">
                                     <Button variant="outline" onClick={() => setStatus('idle')}>
                                         Upload New File
+                                    </Button>
+                                    <Button className="gap-2 bg-slate-900 hover:bg-slate-800" onClick={handleDownloadXLS}>
+                                        <FileSpreadsheet className="w-4 h-4" />
+                                        Download XLS Report
                                     </Button>
                                 </div>
                             </CardContent>
@@ -128,27 +180,25 @@ const BulkAnalysis = () => {
                                         <TableHeader>
                                             <TableRow>
                                                 <TableHead>Applicant ID</TableHead>
-                                                <TableHead>Name</TableHead>
                                                 <TableHead>Credit Score</TableHead>
                                                 <TableHead>Risk Band</TableHead>
                                                 <TableHead>Key Factors</TableHead>
                                             </TableRow>
                                         </TableHeader>
                                         <TableBody>
-                                            {mockBulkData.map((row) => (
-                                                <TableRow key={row.id}>
-                                                    <TableCell className="font-medium">{row.id}</TableCell>
-                                                    <TableCell>{row.name}</TableCell>
+                                            {results.map((row, idx) => (
+                                                <TableRow key={idx}>
+                                                    <TableCell className="font-medium">{row.applicant_id}</TableCell>
                                                     <TableCell>
-                                                        <span className="font-semibold text-slate-900">{row.score}</span>
+                                                        <span className="font-semibold text-slate-900">{row.credit_reliability_score}</span>
                                                     </TableCell>
                                                     <TableCell>
-                                                        <span className={`px-2 py-1 rounded-full text-xs font-medium border ${getRiskBadgeColor(row.riskBand)}`}>
-                                                            {row.riskBand}
+                                                        <span className={`px-2 py-1 rounded-full text-xs font-medium border ${getRiskBadgeColor(row.risk_band)}`}>
+                                                            {row.risk_band}
                                                         </span>
                                                     </TableCell>
                                                     <TableCell className="text-slate-500 text-sm max-w-xs truncate">
-                                                        {row.keyFactors.join(', ')}
+                                                        {row.key_reasons.join(', ')}
                                                     </TableCell>
                                                 </TableRow>
                                             ))}
@@ -157,18 +207,6 @@ const BulkAnalysis = () => {
                                 </div>
                             </CardContent>
                         </Card>
-
-                        {/* Download Actions */}
-                        <div className="flex justify-end gap-4 py-8">
-                            <Button variant="outline" size="lg" className="gap-2" onClick={() => handleDownload('XLS')}>
-                                <FileSpreadsheet className="w-4 h-4" />
-                                Download XLS
-                            </Button>
-                            <Button size="lg" className="gap-2 bg-slate-900 hover:bg-slate-800" onClick={() => handleDownload('PDF')}>
-                                <FileText className="w-4 h-4" />
-                                Download PDF Report
-                            </Button>
-                        </div>
                     </div>
                 )}
             </main>
