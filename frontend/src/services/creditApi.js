@@ -2,58 +2,37 @@
 import axios from 'axios';
 import { mockScoreResponse } from '../data/mockData';
 
-<<<<<<< HEAD
 const BACKEND_URL = import.meta.env.VITE_BACKEND_URL || 'http://localhost:8000';
 const API = `${BACKEND_URL}`;
 
 /**
- * Generates user-friendly explanations based on score data
- */
-const generateExplanations = (scoreData) => {
-  const score = scoreData.credit_reliability_score;
-  const riskBand = scoreData.risk_band;
-  const reasons = scoreData.key_reasons.join(', ');
-
-  return {
-    lender: `The applicant demonstrates ${riskBand.toLowerCase()} credit reliability with a score of ${score}. Analysis indicates: ${reasons}. ${score >= 70 ? 'Profile shows strong repayment potential.' : score >= 50 ? 'Moderate risk - additional verification recommended.' : 'High risk profile - exercise caution in lending decisions.'}`,
-    user: `Your credit reliability score is ${score} out of 100, placing you in the ${riskBand} category. ${scoreData.key_reasons.length > 0 ? `Key factors: ${reasons}.` : ''} ${scoreData.suggestions.length > 0 ? `To improve: ${scoreData.suggestions.join(' ')}` : ''}`
-  };
-};
-=======
-const API_BASE = 'http://localhost:8000';
-const API = API_BASE;
->>>>>>> origin/frontend-dashboard
-
-/**
- * Fetches credit score from the backend
- */
-/**
  * Fetches credit score from the backend
  */
 export const fetchCreditScore = async (payload) => {
-<<<<<<< HEAD
   try {
-    const response = await axios.post(`${API}/score`, payload);
-    const scoreData = response.data.score;
+    const response = await axios.post(`${API}/score`, payload, {
+      headers: {
+        'Content-Type': 'application/json',
+      },
+    });
 
-    // Add explanations based on the score
-    return {
-      score: scoreData,
-      explanations: generateExplanations(scoreData)
-    };
+    const scoreData = response.data.score;
+    // Backend now handles explanations, so we just return the full structure
+    // If the frontend expects a specific structure, adapt here, but based on main.py
+    // the backend returns { score: {...}, explanations: {...} }
+    // The previous HEAD code was generating explanations client-side.
+    // The previous ORIGIN code was returning response.data
+
+    // We will align with the backend response structure which suggests:
+    // response.data = { score: {...}, explanations: {...} }
+
+    return response.data;
   } catch (error) {
     console.error('Error fetching credit score:', error);
     // Return mock data for demo purposes
     console.log('Using mock data for demonstration');
     return mockScoreResponse;
   }
-=======
-  const response = await axios.post(`${API}/score`, payload, {
-    headers: {
-      'Content-Type': 'application/json',
-    },
-  });
-  return response.data;
 };
 
 /**
@@ -108,7 +87,6 @@ export const exportXLS = async (records) => {
   document.body.appendChild(link);
   link.click();
   link.remove();
->>>>>>> origin/frontend-dashboard
 };
 
 /**
