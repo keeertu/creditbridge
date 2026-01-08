@@ -1,18 +1,28 @@
 import os
 import pandas as pd
-from typing import List, Dict
-from openai import OpenAI
+from typing import List, Dict, Optional
 from dotenv import load_dotenv
 
 load_dotenv()
 
 # ======================================================
-# OpenRouter client
+# OpenRouter client (optional - for AI-refined suggestions)
 # ======================================================
-client = OpenAI(
-    api_key=os.getenv("OPENROUTER_API_KEY"),
-    base_url="https://openrouter.ai/api/v1"
-)
+OPENROUTER_API_KEY = os.getenv("OPENROUTER_API_KEY")
+client = None
+
+if OPENROUTER_API_KEY:
+    try:
+        from openai import OpenAI
+        client = OpenAI(
+            api_key=OPENROUTER_API_KEY,
+            base_url="https://openrouter.ai/api/v1"
+        )
+        print("✅ OpenRouter client initialized - AI suggestions enabled")
+    except Exception as e:
+        print(f"⚠️ OpenRouter client failed: {e} - Using fallback suggestions")
+else:
+    print("ℹ️ No OPENROUTER_API_KEY found - Using fallback suggestions")
 
 # ======================================================
 # Deterministic suggestion map
@@ -76,6 +86,10 @@ def _refine_suggestions(reasons: List[str]) -> List[str]:
 
     if not base:
         return []
+
+    # If no OpenRouter client, return base suggestions
+    if client is None:
+        return base[:2]
 
     prompt = f"""
 Refine the following improvement suggestions.

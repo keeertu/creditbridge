@@ -35,13 +35,18 @@ export const RoleProvider = ({ children }) => {
     }
   };
 
+  const setIsLender = (value) => {
+    setRole(value ? ROLES.LENDER : ROLES.APPLICANT);
+  };
+
   return (
-    <RoleContext.Provider value={{ 
-      role, 
-      isLender, 
-      isApplicant, 
-      toggleRole, 
-      setRoleTo 
+    <RoleContext.Provider value={{
+      role,
+      isLender,
+      isApplicant,
+      toggleRole,
+      setRoleTo,
+      setIsLender
     }}>
       {children}
     </RoleContext.Provider>
