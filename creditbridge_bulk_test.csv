@@ -1,0 +1,4 @@
+applicant_id,avg_daily_income,income_std_dev,active_days_ratio,max_income_gap,tenure_months,income_trend
+USER-1,1200,45.2,0.82,4,12,0.52
+USER-2,800,120.0,0.55,9,5,-0.12
+USER-3,1500,300.0,0.95,2,36,0.18

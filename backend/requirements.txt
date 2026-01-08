@@ -6,3 +6,6 @@ lightgbm
 joblib
 python-dotenv
 openai
+reportlab
+openpyxl
+python-multipart
