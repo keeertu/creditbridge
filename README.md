@@ -1,10 +1,20 @@
 # CreditBridge
 
+CreditBridge is an AI-powered credit intelligence platform for gig workers and informal entrepreneurs.
+It converts raw income patterns into bank-grade, explainable credit scores using Azure Machine Learning.
+This enables lenders to safely extend credit to the 1.5 billion people excluded by traditional systems.
+
 ## Project Overview
 CreditBridge is an AI-driven credit assessment platform designed to foster financial inclusion for the underbanked and informal sectors. By moving beyond traditional credit history and utilizing alternative income data, CreditBridge provides a reliable, equitable, and transparent credit scoring mechanism for gig workers, freelancers, and small-scale entrepreneurs globally.
 
 ### Imagine Cup Framing
 This project addresses the global challenge of **Financial Exclusion**. Millions of hardworking individuals are denied access to credit because they lack a formal banking history. CreditBridge leverages high-performance Machine Learning and Large Language Models to convert raw income patterns into bank-grade credit intelligence, empowering both borrowers and lenders.
+
+## Why CreditBridge Is Different
+
+- **We score income behavior, not paperwork** — gig workers and informal earners are evaluated on how they actually earn, not on salary slips.
+- **We provide audited explanations, not black boxes** — every score is paired with ML-backed, regulator-safe reasoning.
+- **We are built on Azure ML + Azure App Service**, making CreditBridge enterprise-ready, scalable, and compliant from day one.
 
 ## Why This Matters for the Microsoft Ecosystem
 
