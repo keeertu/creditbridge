@@ -22,7 +22,7 @@ CreditBridge is built as a cloud-native AI system on Microsoft Azure, using prod
 
 ### Microsoft Services Used
 - **Azure Machine Learning**  
-  Used for training, versioning, and managing the LightGBM credit risk model. This ensures reproducibility, controlled experimentation, and a clear path toward regulated ML workflows.
+  Used for training, versioning, and managing the LightGBM credit risk model. This ensures auditable, reproducible credit decisions and a clear path toward regulated ML workflows.
 
 - **Azure App Service**  
   Hosts the FastAPI backend that exposes scoring, bulk processing, and export APIs. This enables scalable, managed deployment without custom infrastructure overhead.
